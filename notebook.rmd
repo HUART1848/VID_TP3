@@ -4,14 +4,11 @@ date: "2023"
 author: "Hugo Huart"
 fontsize: 12pt
 output: pdf_document
-toc: yes
-toc-title: "Table des matières"
-toc-depth: 2
 header-includes:
   - \usepackage{fancyhdr}
   - \pagestyle{fancy}
   - \setlength{\headheight}{32pt}
-  - \fancyhead[LE,LO]{Huart - VID - Travail Pratique 3}
+  - \fancyhead[LE,LO]{Hugo Huart - VID - Travail Pratique 3}
   - \usepackage{geometry}
   - \geometry{top=2cm,left=2cm,bottom=2cm,right=2cm}
 ---
@@ -22,4 +19,60 @@ introduction introduction introduction introduction introduction
 
 ## Chargement des librairies
 
+```{r}
+library("rpart")
+library("DAAG")
+```
+
+
+\pagebreak
+# Exercice 1
+
+Cet exercice a pour but d'introduire les arbres de classification implémentés
+par T. M. Therneau et E. J. Atkinson en 1997.
+
+
+## 1 - c)
+
+Les données sont chargées dans l'objet `spam7`:
+
+```{r}
+print(spam7, max=64)
+```
+
+## 1 - d)
+
+Construction d'un arbre de classification:
+
+```{r}
+set.seed(010666)
+spam.ct<-rpart(formula=yesno~crl.tot+dollar+bang+money+n000+make,
+method="class", data=spam7, cp=0.001)
+```
+
+## 1 - e)
+
+Affichage d'un résumé succinct du modèle:
+
+```{r}
+print(spam.ct)
+```
+
+## 1 - f)
+
+Affichage d'un résumé détaillé du modèle:
+
+```{r}
+summary(spam.ct)
+```
+
+## 1 - g)
+
+Construction graphique de l'arbre de classification:
+
+```{r fig.align='center', fig.width=8, fig.height=6}
+par(pty="s")
+plot(spam.ct, uniform=TRUE)
+text(spam.ct, use.n=TRUE, all=TRUE, cex=0.6)
+```
 
