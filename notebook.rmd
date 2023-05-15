@@ -55,7 +55,7 @@ method="class", data=spam7, cp=0.001)
 Affichage d'un résumé succinct du modèle:
 
 ```{r}
-print(spam.ct)
+printcp(spam.ct)
 ```
 
 ## 1 - f)
@@ -75,4 +75,6 @@ par(pty="s")
 plot(spam.ct, uniform=TRUE)
 text(spam.ct, use.n=TRUE, all=TRUE, cex=0.6)
 ```
+
+## 1 - h)
 
