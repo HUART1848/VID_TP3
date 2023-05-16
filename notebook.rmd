@@ -1,7 +1,7 @@
 ---
 title: "VID - Travail Pratique 3"
 date: "2023"
-author: "Hugo Huart"
+author: "Farouk Ferchichi & Hugo Huart"
 fontsize: 12pt
 output: pdf_document
 header-includes:
@@ -22,6 +22,7 @@ introduction introduction introduction introduction introduction
 ```{r}
 library("rpart")
 library("DAAG")
+library("MASS")
 ```
 
 
@@ -54,15 +55,15 @@ method="class", data=spam7, cp=0.001)
 
 Affichage d'un résumé succinct du modèle:
 
-```{r}
-printcp(spam.ct)
+```{r include=FALSE}
+print(spam.ct)
 ```
 
 ## 1 - f)
 
 Affichage d'un résumé détaillé du modèle:
 
-```{r}
+```{r include=FALSE}
 summary(spam.ct)
 ```
 
@@ -77,4 +78,116 @@ text(spam.ct, use.n=TRUE, all=TRUE, cex=0.6)
 ```
 
 ## 1 - h)
+
+```{r}
+
+```
+
+
+## 1 - i)
+
+```{r}
+new<-data.frame(crl.tot=c(1257,112), dollar=c(0.025,0.054), bang=c(0.181,0.164),
+money=c(0.15,0.00), n000=c(0.00,0.00), make=c(0.15,0.00))s
+predict(spam.ct, newdata=new, type="class")
+```
+
+
+
+\pagebreak
+# Exercice 2
+
+### 2 - a)
+
+Les données se trouvent dans l’objet `cpus` de la librairie MASS qui doit être
+installée puis chargée dans **R**.
+
+```{r}
+data(cpus)
+?cpus
+```
+
+### 2 - b)
+
+Pour construire l’arbre de régression à l’aide de la librairie rpart et en
+obtenir un résumé succinct partiel (paramètre de complexité fixé à 0.001),
+utiliser les commandes.
+
+```{r}
+library(rpart)
+set.seed(123)
+cpus.rt<-rpart(log10(perf)~., cpus[,2:8], cp=0.001)
+print(cpus.rt, cp=0.001)
+
+```
+
+### 2 - c)
+
+Afficher un résumé plus détaillé de l’arbre de régression.
+
+```{r include=FALSE}
+summary(cpus.rt)
+```
+
+
+### 2 - d)
+
+Affichage de la représentation graphique de  l’arbre de régression complet.
+
+```{r}
+plot(cpus.rt)
+plot(cpus.rt, cex = 1)
+text(cpus.rt, cex = 0.6)
+```
+### e) Il nous reste à élaguer l’arbre de régression et le rendre optimal par la règle du "un écarttype" en partant d’un paramètre de complexité CP fixé à 0.001. À l’aide de R
+
+#### e.1)  déterminer le nombre nécessaire de divisions (nsplit) pour obtenir un arbre optimal ;
+Quand on affiche le résumé de notre arbre (voir question précédente ) on voit que le nombre de nœuds y figure au tout début du résumé, dans le tableau sous la colonne “n-split”. On voit qu’il y a 16 nœuds en tout. 
+
+#### e.2) en déduire la taille (nombre total de feuilles) de cet arbre;
+Le nombre de feuilles correspond au nombre de classes, il s’agit dans notre cas de 17 classes, donc 17 feuilles 
+
+
+
+
+
+
+
+
+
+#### e.3) visualiser l’application de la règle du "un écart-type" par la fonction plotcp;
+
+
+
+
+
+```{r}
+par(pty = "s")
+plotcp(cpus.rt)
+```
+
+
+```{r}
+cp<-cpus.rt$cptable
+opt<-which.min(cpus.rt$cptable[,"xerror"])
+r<-cp[, 4][opt] + cp[, 5][opt]
+rmin<-min(seq(1:dim(cp)[1])[cp[, 4] < r])
+cp0<-cp[rmin,1]
+cp0
+cat("size chosen was", cp[rmin,2]+1, "\n")
+
+```
+
+```{r}
+cpus.prune <- prune(cpus.rt, cp = cp0)
+```
+
+
+#### e.4) tracer l’arbre de régression final.
+
+```{r}
+plot(cpus.prune)
+plot(cpus.prune, cex = 1)
+text(cpus.prune, cex = 0.6)
+```
 
