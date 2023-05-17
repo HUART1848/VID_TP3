@@ -8,21 +8,28 @@ header-includes:
   - \usepackage{fancyhdr}
   - \pagestyle{fancy}
   - \setlength{\headheight}{32pt}
-  - \fancyhead[LE,LO]{Hugo Huart - VID - Travail Pratique 3}
+  - \fancyhead[LE,LO]{Farouk Ferchichi \& Hugo Huart - VID - Travail Pratique 3}
   - \usepackage{geometry}
   - \geometry{top=2cm,left=2cm,bottom=2cm,right=2cm}
 ---
 
 # Introduction
 
-introduction introduction introduction introduction introduction 
+Ce travail pratique à pour thèmes les arbres de décisions et pour
+but le perfectionnement de la rédaction de rapports industriels ainsi que de la
+maîtrise du logiciel **R**.
 
 ## Chargement des librairies
 
-```{r}
+```{r message=FALSE, warning=FALSE}
 library("rpart")
+library("rpart.plot")
 library("DAAG")
 library("MASS")
+library("GGally")
+library("ISLR2")
+library("dplyr")
+library("rgl")
 ```
 
 
@@ -55,7 +62,7 @@ method="class", data=spam7, cp=0.001)
 
 Affichage d'un résumé succinct du modèle:
 
-```{r include=FALSE}
+```{r}
 print(spam.ct)
 ```
 
@@ -63,7 +70,7 @@ print(spam.ct)
 
 Affichage d'un résumé détaillé du modèle:
 
-```{r include=FALSE}
+```{r}
 summary(spam.ct)
 ```
 
@@ -79,93 +86,173 @@ text(spam.ct, use.n=TRUE, all=TRUE, cex=0.6)
 
 ## 1 - h)
 
-```{r}
-
-```
-
+En suivant les conditions de chaque branche, on obtient **Y** (spam) pour
+les deux messages.
 
 ## 1 - i)
 
 ```{r}
 new<-data.frame(crl.tot=c(1257,112), dollar=c(0.025,0.054), bang=c(0.181,0.164),
-money=c(0.15,0.00), n000=c(0.00,0.00), make=c(0.15,0.00))s
+money=c(0.15,0.00), n000=c(0.00,0.00), make=c(0.15,0.00))
 predict(spam.ct, newdata=new, type="class")
 ```
 
+Ces résultats correspondent à la vérification manuelle du point précédent.
 
+## 1 - j)
+
+Affichage des informations nécessaires pour procéder à l’élagage de l'arbre:
+
+```{r}
+options(digits=5)
+printcp(spam.ct)
+```
+
+On constate que l'erreur minimale `xerror` vaut $0.317$, on y ajoute son
+écart-type de $0.0124$ pour obtenir une valeur de $0.3294$
+
+La plus grande valeur de `CP` pour laquelle la valeur `xerror` est inférieure à
+$0.3294$ correspond à la 9ème ligne avec une valeur `xerror` de $0.327$, `CP`
+de $0.00276$.
+
+Création de l'arbre élagué selon ces paramètres:
+
+```{r}
+spam.ct.trimmed<-prune(spam.ct, cp=0.00276)
+print(spam.ct.trimmed)
+printcp(spam.ct.trimmed)
+```
+
+Cet arbre élagué comprend 16 divisions et 17 feuilles.
+
+\pagebreak
+Affichage de l'arbre:
+
+```{r, fig.align='center', fig.width=8, fig.height=6}
+par(pty="s")
+plot(spam.ct.trimmed, uniform=TRUE)
+text(spam.ct.trimmed, use.n=TRUE, all=TRUE, cex=0.6)
+```
+
+\pagebreak
+## 1 - k)
+
+Visualisation de la règle du "un écart-type":
+
+```{r fig.align='center', fig.width=5, fig.height=5}
+plotcp(spam.ct)
+```
+
+## 1 - l)
+
+Création d'un nouvel arbre de classification:
+
+```{r}
+spam.ct1<-prune(spam.ct, cp=0.003)
+x<-factor(predict(spam.ct1, type="class"))
+table(true=spam7$yesno, predicted=x)
+```
+
+Cette classification est assez satisfaisante mais pas idéale;
+la matrice de confusion permet de constater une plus grande proportion de faux
+négatifs que de faux positifs, l'inverse serait pourtant peut-être plus
+désirable dans le cas d'une approche de sécurité des mails stricte.
+
+## 1 - m)
+
+Affichage de l'arbre de décision finale,
+première variante:
+
+```{r fig.align='center', fig.width=6, fig.height=7}
+plot(spam.ct1, branch=0.4, uniform=TRUE)
+text(spam.ct1, digits=3, use.n=TRUE, cex=0.6)
+```
+
+\pagebreak
+Deuxième variante:
+
+```{r fig.align='center', fig.width=6, fig.height=7}
+rpart.plot(spam.ct1, main="")
+```
+
+\pagebreak
+Troisième variante:
+
+```{r fig.align='center', fig.width=6, fig.height=7}
+prp(spam.ct1, type=3, extra=4, faclen=0)
+```
+
+\pagebreak
+Quatrième variante:
+
+```{r fig.align='center', fig.width=6, fig.height=7}
+rpart.plot(spam.ct1, main="", extra=106, under=TRUE, faclen=0)
+```
 
 \pagebreak
 # Exercice 2
 
-### 2 - a)
+## 2 - a)
 
 Les données se trouvent dans l’objet `cpus` de la librairie MASS qui doit être
 installée puis chargée dans **R**.
 
 ```{r}
 data(cpus)
-?cpus
 ```
 
-### 2 - b)
+## 2 - b)
 
-Pour construire l’arbre de régression à l’aide de la librairie rpart et en
-obtenir un résumé succinct partiel (paramètre de complexité fixé à 0.001),
-utiliser les commandes.
+Construction d'un arbre de régression et affichage succinct et partiel de ses
+informations:
 
 ```{r}
-library(rpart)
 set.seed(123)
 cpus.rt<-rpart(log10(perf)~., cpus[,2:8], cp=0.001)
 print(cpus.rt, cp=0.001)
-
 ```
 
-### 2 - c)
+## 2 - c)
 
-Afficher un résumé plus détaillé de l’arbre de régression.
+Afficher un résumé plus détaillé de l'arbre de régression.
 
-```{r include=FALSE}
+```{r}
 summary(cpus.rt)
 ```
 
-
-### 2 - d)
+\pagebreak
+## 2 - d)
 
 Affichage de la représentation graphique de  l’arbre de régression complet.
 
-```{r}
-plot(cpus.rt)
+```{r fig.align='center', fig.width=6, fig.height=6}
 plot(cpus.rt, cex = 1)
-text(cpus.rt, cex = 0.6)
+text(cpus.rt, cex = 0.7)
 ```
-### e) Il nous reste à élaguer l’arbre de régression et le rendre optimal par la règle du "un écarttype" en partant d’un paramètre de complexité CP fixé à 0.001. À l’aide de R
 
-#### e.1)  déterminer le nombre nécessaire de divisions (nsplit) pour obtenir un arbre optimal ;
-Quand on affiche le résumé de notre arbre (voir question précédente ) on voit que le nombre de nœuds y figure au tout début du résumé, dans le tableau sous la colonne “n-split”. On voit qu’il y a 16 nœuds en tout. 
+## 2 - e)
 
-#### e.2) en déduire la taille (nombre total de feuilles) de cet arbre;
-Le nombre de feuilles correspond au nombre de classes, il s’agit dans notre cas de 17 classes, donc 17 feuilles 
+Il nous reste à élaguer l’arbre de régression et le rendre optimal par la règle
+du "un écarttype" en partant d’un paramètre de complexité CP fixé à 0.001.
 
+### Étape 1
 
+Selon le résumé obtenu précédemment, il y a 16 divisions en tout.
 
+### Étape 2
 
+Il y a 17 feuilles.
 
+### Étape 3
 
-
-
-
-#### e.3) visualiser l’application de la règle du "un écart-type" par la fonction plotcp;
-
-
-
-
+Visualisation de la règle du "un écart-type" à l'aide de `plotcp`:
 
 ```{r}
 par(pty = "s")
 plotcp(cpus.rt)
 ```
 
+Construction de l'arbre élagué:
 
 ```{r}
 cp<-cpus.rt$cptable
@@ -175,19 +262,201 @@ rmin<-min(seq(1:dim(cp)[1])[cp[, 4] < r])
 cp0<-cp[rmin,1]
 cp0
 cat("size chosen was", cp[rmin,2]+1, "\n")
-
 ```
 
 ```{r}
-cpus.prune <- prune(cpus.rt, cp = cp0)
+cpus.rt.trimmed<-prune(cpus.rt, cp=cp0)
 ```
 
+\pagebreak
+### Étape 4
 
-#### e.4) tracer l’arbre de régression final.
+Affichage de l'arbre de régression final:
+
+```{r fig.align='center', fig.width=6, fig.height=6}
+plot(cpus.rt.trimmed, cex = 1)
+text(cpus.rt.trimmed, cex = 0.8)
+```
+
+\pagebreak
+# Exercice 3
+
+## 3 - a)
+
+Chargement et affichage du graphique des corrélations pour l'object `boston`:
+
+```{r fig.align='center', fig.width=6, fig.height=6}
+boston<-Boston %>%
+  select(lstat, age, medv)
+ggpairs(boston, lower=list(continuous=wrap("points", colour="cyan4")))
+```
+
+## 3 - b)
+
+On constate une corrélation modérée et positive entre les variables
+`lstat` et `age`.
+
+## 3 - c)
+
+Il y a une corrélation faible et négative entre `medv` et `age`.
+
+Il y a une bonne corrélation négative entre `medv` et `lstat`.
+
+## 3 - d)
+
+Construction d'un graphique 3D représentant les 3 variables:
+
+```{r warning=FALSE, fig.align='center', fig.width=6, fig.height=6}
+plotids<-with(Boston, plot3d(lstat, age, medv, type="s", col="blue"))
+rglwidget(elementId="plot3drgl")
+```
+
+On arrive, avec moins de lisibilité, aux même conclusions que les 2 points
+précédents.
+
+## 3 - e)
+
+Construction d'un modèle de régression linéaire multiple:
 
 ```{r}
-plot(cpus.prune)
-plot(cpus.prune, cex = 1)
-text(cpus.prune, cex = 0.6)
+boston.lm<-lm(medv~lstat+age, data=boston)
+boston.lm
 ```
 
+Son équation correspond à
+$medv = 33.2228 -1.0321 \cdot lstat + 0.0345 \cdot age$.
+
+## 3 - f)
+
+Affichage des informations d'ajustement du modèle:
+
+```{r}
+summary(boston.lm)
+```
+
+Les 2 variables explicatives sont significatives à un seuil de 95%. `lstat` est
+elle-même significative au delà d'un seuil de 99%, ce qui a du sens étant donné
+que `lstat` et `medv` ont une meilleur corrélation que `age` et `medv`.
+
+\pagebreak
+## 3 - g)
+
+Affichage d'un graphique en 3 dimensions représentant les points et
+la régression:
+```{r}
+print(summary(boston.lm)$r.squared)
+print(summary(boston.lm)$adj.r.squared)
+```
+```{r warning=FALSE, fig.align='center', fig.width=8, fig.height=6}
+plot3d(boston.lm)
+rglwidget(elementId="plot3drgl")
+```
+
+\pagebreak
+## 3 - h)
+
+Détermination des coefficients $R^2$ et ${R^2}_{adj}$ respectivement:
+
+```{r}
+print(summary(boston.lm)$r.squared)
+print(summary(boston.lm)$adj.r.squared)
+```
+
+Ces deux valeurs ne sont pas très élevés sans être totalement médiocres.
+La valeur ajustée est inférieure à la valeur de base comme attendu.
+
+## 3 - i)
+
+Vérification des hypothèses inhérentes au modèle à l'aide du graphique suivant:
+
+```{r, fig.align='center', fig.width=5, fig.height=5}
+par(mfrow=c(2, 2))
+plot(boston.lm)
+```
+
+### Nuage de points des résidus (`Residuals vs Fitted`)
+
+La variabilité n'est pas tout à fait proche de 0 au début et à la fin.
+Une tendance de parabole élargie se dessine. Le modèle n'est pas tout à fait
+adéquat.
+
+### Nuage de points de la racine carrée de la valeur absolue des résidus contre les valeurs ajustées (`Scale-Location`)
+
+Mêmes tendances qu'au point précédent.
+
+### Graphique des résidus observés standardisés contre les résidus théoriques (`Q-Q Residuals`)
+
+Les points suivent bien la droite jusqu'aux alentours de 1. À partir de là les
+points dévient vers le haut. La normalité des erreurs n'est pas idéale.
+
+### Graphique représentant la distance de Cook (`Residuals vs Leverage`)
+
+Hormis le point **215** il n'y a pas vraiment de valeurs atypiques.
+
+Bien qu'étant loin d'être catastrophique, le modèle n'est pas idéal.
+Il serait peut-être judicieux d'ajouter des variables dans l'équation du modèle.
+
+## 3 - j)
+
+Construction d'un modèle de régression linéaire avec toutes les caractéristiques
+disponibles:
+
+```{r}
+boston.all.lm<-lm(Boston %>% relocate(medv))
+boston.all.lm
+```
+
+Affichage de ses informations d'ajustement:
+
+```{r}
+summary(boston.all.lm)
+```
+
+Calcul de ses coefficients de détermination:
+
+```{r}
+print(summary(boston.all.lm)$r.squared)
+print(summary(boston.all.lm)$adj.r.squared)
+```
+
+On constate que ces derniers sont meilleurs que ceux du modèle restreint.
+Prendre en compte toutes les caractéristiques est donc judicieux dans ce cas.
+
+\pagebreak
+## 3 - k)
+
+Construction d'un arbre de régression optimal:
+
+```{r}
+set.seed(010666)
+boston.rt<-rpart(formula=medv~crim+zn+indus+chas+nox+rm+age+dis+rad+tax+ptratio+lstat,
+                 data=Boston, method="anova", cp=0.001)
+```
+
+Affichage de l'arbre:
+
+```{r fig.align='center', fig.width=6, fig.height=5}
+rpart.plot(boston.rt)
+```
+
+## 3 - l)
+
+La commande suivante permet de vérifier les variables les plus importantes:
+
+```{r}
+printcp(boston.rt)
+```
+
+On constate que les variables `lstat` et `nox` sont les plus importantes.
+
+## 3 - m)
+
+Les maisons les plus chères possèdent une valeur `rm` plus grande que 7.4 ainsi
+qu'un `ptratio` inférieur à 15.
+
+# Conclusion
+
+Ce travail pratique a permis d'approfondir et d'appliquer les connaissances
+liées au arbres de décision (classification et régression) abordées lors du
+cours, ainsi que de se familiariser et solidifier encore plus la pratique du 
+logiciel **R** et de ses différentes librairies tierces.
