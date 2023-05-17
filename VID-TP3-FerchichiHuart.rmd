@@ -15,7 +15,7 @@ header-includes:
 
 # Introduction
 
-Ce travail pratique à pour thèmes les arbres de décisions et pour
+Ce travail pratique a pour thèmes les arbres de décisions et pour
 but le perfectionnement de la rédaction de rapports industriels ainsi que de la
 maîtrise du logiciel **R**.
 
@@ -101,7 +101,7 @@ Ces résultats correspondent à la vérification manuelle du point précédent.
 
 ## 1 - j)
 
-Affichage des informations nécessaires pour procéder à l’élagage de l'arbre:
+Affichage des informations nécessaires pour procéder à l'élagage de l'arbre:
 
 ```{r}
 options(digits=5)
